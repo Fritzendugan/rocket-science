@@ -276,6 +276,10 @@ public class LevelScreen extends Scene
 			else if (line.length == 2) // load a song
 			{
 				//TODO: load song
+				//add song here
+				//line[0] key
+				//line[1] path
+				
 			}
 			else // change the asset path
 			{
