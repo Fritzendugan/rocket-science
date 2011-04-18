@@ -40,7 +40,7 @@ public class MovePathController implements IUpdateHandler
 		}
 		
 		// now set position
-		nodes[curNode].setPosition(position, nodes[(curNode + 1) % nodes.length].p);
+		nodes[curNode].setPosition(position, nodes[(curNode + 1) % nodes.length]);
 	}
 	
 	@Override

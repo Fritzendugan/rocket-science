@@ -8,8 +8,6 @@ import com.rocketscience.helpers.ObjectKeys;
 public class BaseObject
 {
 	private static long _lastid = 0;
-	
-	public static BaseObject NULL_OBJECT = new BaseObject(null, null, ObjectKeys.NULL_OBJECT);
 
 	protected final Body body;
 	protected final Shape sprite;
@@ -29,6 +27,11 @@ public class BaseObject
 	public long getID()
 	{
 		return id;
+	}
+	
+	public Body getBody()
+	{
+		return body;
 	}
 	
 	public short getType()

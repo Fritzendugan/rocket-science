@@ -85,7 +85,7 @@ public class RocketScience extends BaseGameActivity
             final LevelScreen firstLevel = new LevelScreen(1, mEngine, mCamera, this);
             try 
             {
-            	firstLevel.loadLevel(this, "levels/kyle2");
+            	firstLevel.loadLevel(this, "levels/test");
 			} 
             catch (NotFoundException e) 
             {

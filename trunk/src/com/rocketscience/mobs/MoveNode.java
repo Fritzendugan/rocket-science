@@ -4,16 +4,17 @@ import com.badlogic.gdx.math.Vector2;
 
 public class MoveNode
 {
-	public final Vector2 p;
+	protected final float pX, pY;
 	public final long delay; // the time you have to wait before you stop moving
 	public final long time; // time it takes to get to the next node
 	public final long totalTime; // the total time spent on this node
 	private long totalElapsed;
 	private long excessTime; // gets set on setPosition, otherwise it's garbage
 	
-	public MoveNode(final Vector2 position, final long d, final long t)
+	public MoveNode(final float x, final float y, final long d, final long t)
 	{
-		p = position;
+		pX = x;
+		pY = y;
 		delay = d;
 		time = t;
 		excessTime = 0;
@@ -40,30 +41,32 @@ public class MoveNode
 		excessTime = 0;
 	}
 	
-	public void setPosition(final Vector2 result, final Vector2 next)
+	public void setPosition(final Vector2 result, final MoveNode nextNode)
 	{
+		float nx = nextNode.pX;
+		float ny = nextNode.pY;
 		// calculate position
 		if (totalElapsed < delay)
 		{
-			result.x = p.x;
-			result.y = p.y;
+			result.x = pX;
+			result.y = pY;
 		}
 		else if (totalElapsed > totalTime)
 		{
-			result.x = next.x;
-			result.y = next.y;
+			result.x = nx;
+			result.y = ny;
 		}
 		else // lerp
 		{
 			final float scale = (float)(totalElapsed - delay) / time;
-			result.x = p.x + (next.x - p.x) * scale;
-			result.y = p.y + (next.y - p.y) * scale;
+			result.x = pX + (nx - pX) * scale;
+			result.y = pY + (ny - pY) * scale;
 		}
 	}// setPosition
 	
 	@Override
 	public String toString()
 	{
-		return "MoveNode: " + p.toString() + " delay: " + Long.toString(delay) + " time: " + Long.toString(time) + ".";
+		return "MoveNode: " + new Vector2(pX, pY).toString() + " delay: " + Long.toString(delay) + " time: " + Long.toString(time) + ".";
 	}
 }

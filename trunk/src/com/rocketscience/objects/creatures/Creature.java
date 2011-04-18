@@ -4,6 +4,7 @@ import java.util.TreeMap;
 
 import org.anddev.andengine.engine.handler.IUpdateHandler;
 import org.anddev.andengine.entity.shape.Shape;
+import org.anddev.andengine.entity.sprite.AnimatedSprite;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -15,13 +16,15 @@ public class Creature extends BaseObject implements IUpdateHandler
 	protected final TreeMap<Integer,Action> actions = new TreeMap<Integer,Action>();
 
 	protected final Vector2 startingPosition;
-
+	protected final AnimatedSprite sprite;
+	
 	protected int curPath = 0; // the current path it's on
 	protected boolean forward = true; // whether it is moving forward or backward on the current path
 
-	public Creature(final Body b, final Shape s, final short k) 
+	public Creature(final Body b, final AnimatedSprite s, final short k) 
 	{
 		super(b,s,k);
+		sprite = s;
 		startingPosition = b.getPosition();
 	}
 	
@@ -45,6 +48,17 @@ public class Creature extends BaseObject implements IUpdateHandler
 	{
 		return this.body.getWorldCenter();
 	}
+	
+	public Body getBody()
+	{
+		return this.body;
+	}
+	
+	public AnimatedSprite getSprite() 
+	{ 
+		return this.sprite; 
+	}
+
 
 	@Override
 	public void onUpdate(float pSecondsElapsed) 
@@ -63,7 +77,7 @@ public class Creature extends BaseObject implements IUpdateHandler
 	public String toString()
 	{
 		StringBuilder buf = new StringBuilder();
-		buf.append(" --- BodyWithActions (id: ").append(id).append(") ---");
+		buf.append(" --- Creature (id: ").append(id).append(") ---");
 		buf.append("\nPosition: ").append(body.getPosition().toString());
 		buf.append("\nstartingPosition: ").append(startingPosition.toString());
 		buf.append("\n --- end BodyWithActions (id: ").append(id).append(") ---");

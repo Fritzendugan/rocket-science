@@ -3,6 +3,7 @@ package com.rocketscience.helpers;
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.extension.physics.box2d.PhysicsWorld;
 import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.TextureManager;
@@ -15,6 +16,7 @@ import com.rocketscience.level.Section;
 import com.rocketscience.mobs.BodyWithActions;
 import com.rocketscience.objects.BaseObject;
 import com.rocketscience.objects.DeathAreaObj;
+import com.rocketscience.objects.Door;
 import com.rocketscience.objects.WayPointObj;
 import com.rocketscience.player.Player;
 
@@ -24,6 +26,7 @@ public class ObjectLoader
 	private static final String TEX_FILE = "gfx/misc/objects.png";
 	private static final Texture TEXTURE = new Texture(TEX_WIDTH, TEX_HEIGHT);
 	
+	public static Engine engine;
 	public static PhysicsWorld physicsWorld;
 	public static Player player;
 	public static Section currentSection;
@@ -47,15 +50,14 @@ public class ObjectLoader
 	{
 		final BaseObject obj;
 		
-		if (key == ObjectKeys.DEMO_PLATFORM)
+		if (key == ObjectKeys.WORLD_SHAPE)
 		{
-			//TODO: this is just an example stub
-			obj = null;
+			//TODO: this could be done more nicely
+			obj = ObjectLoader.currentSection.loadPolygon(inp, ObjectLoader.context);
 		}
-		else if (key == ObjectKeys.NULL_PLATFORM)
+		else if (key == ObjectKeys.DOOR)
 		{
-			//TODO: this is just an example stub
-			obj = null;
+			obj = Door.Load(inp);
 		}
 		else if (key == ObjectKeys.WAY_POINT)
 		{

@@ -1,5 +1,6 @@
 package com.rocketscience.player;
 
+import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.engine.camera.Camera;
 import org.anddev.andengine.engine.camera.hud.controls.BaseOnScreenControl;
 import org.anddev.andengine.engine.handler.IUpdateHandler;
@@ -17,6 +18,7 @@ import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -32,38 +34,40 @@ import com.rocketscience.level.Section;
 import com.rocketscience.objects.WayPointObj;
 import com.rocketscience.objects.creatures.Creature;
 
-public class Player extends Creature implements IUpdateHandler
+public class Player extends Creature
 {
 	private final static String TEX_FILE = "gfx/mobs/weirdman.png";
 	private final static int TEX_WIDTH = 256, TEX_HEIGHT = 128, TEX_COLS = 4, TEX_ROWS = 2, 
 	                         TEX_ROWS_PER_ANIMATION = 1;
 	private final static FixtureDef FIX_DEF = getFixtureDef(),
 									FIX_BOTTOM = getBottomDef();
-	private final static int ANIMATION_WALKING = 1,
-							 ANIMATION_JUMP = 2,
-							 ANIMATION_STILL = -1;
+	private final static int STATE_WALKING = 1,
+							 STATE_JUMPING = 2,
+							 STATE_FALLING = 3,
+							 STATE_FLYING = 4,
+							 STATE_STILL = -1;
 	private final Body bottom; // the bottom of the player. Used to test if the player is on the ground or hitting an enemy
-	private final AnimatedSprite sprite;
 	private Section activeSection = null; // the section the player is currently on
+	private final Engine myEngine;
 	private long  score = 0;
 	// player stats
-	private float maxspeed = 5f;
-	private float maxjump  = 100f;
+	private float maxspeed = 15f;
+	private float maxjump  = 15f;
 	// state information
 	private final Vector2 acceleration = new Vector2(0,0); // this gets mul'd * seconds in update and added
 	private WayPointObj lastWayPoint = null; // where he'll respawn
-	private int animation = ANIMATION_WALKING;
+	private int state = STATE_FALLING;
 	private boolean faceRight = true;
-	private boolean canJump = true;
-	private boolean flying = false;
 	final private Vector2 flySpeed = new Vector2();
 	private Vector2 spawnPosition = null; // this gets set when the player is "sent" somewhere
+	// Controls Information
+	private float stickX = 0, stickY = 0;
 	
-	public Player(final Body b, final AnimatedSprite s, final Body bt)
+	public Player(final Body b, final AnimatedSprite s, final Body bt, final Engine e)
 	{
 		super(b,s, ObjectKeys.PLAYER);
-		sprite = s;
 		bottom = bt;
+		myEngine = e;
 	}
 	
 	private static FixtureDef getFixtureDef()
@@ -83,13 +87,13 @@ public class Player extends Creature implements IUpdateHandler
 		return fixdef;
 	}
 	
-	public static Player MakePlayer(final float x, final float y, final Scene scene, final PhysicsWorld world, final Context context, final TextureManager texman)
+	public static Player MakePlayer(final float x, final float y, final PhysicsWorld world, final Context context, final Engine engine)
 	{
 		final Texture tex = new Texture(TEX_WIDTH, TEX_HEIGHT);
 		final TiledTextureRegion texregion = TextureRegionFactory.createTiledFromAsset(tex, context, TEX_FILE, 0, 0, 
 				                             TEX_COLS, TEX_ROWS);
 		// set up the graphics for the player
-		texman.loadTexture(tex);
+		engine.getTextureManager().loadTexture(tex);
 		final AnimatedSprite sprite = new AnimatedSprite(x,y,texregion);
 		sprite.animate(new long[]{300,300,300,300}, 0, 3, true);
 		
@@ -108,7 +112,7 @@ public class Player extends Creature implements IUpdateHandler
         world.createJoint(joint);
         
         // create the player object
-        final Player player = new Player(body, sprite, bottom);
+        final Player player = new Player(body, sprite, bottom, engine);
         
         // create the contactListener for the bottom sensor
         ContactListenerManager.addListener(new ContactListener()
@@ -121,7 +125,7 @@ public class Player extends Creature implements IUpdateHandler
 				//Log.e("RocketScience->Player->BottomContactListener", "beginContact bodyA: " + (String)a.getUserData() + " bodyB: " + (String)b.getUserData());
 				if ((a.equals(bottom) || b.equals(bottom)) && contact.isTouching())
 				{
-					player.canJump = true;
+					player.state = STATE_STILL;
 					
 					Log.e("RocketScience->Player->BottomContactListener", "Bottom hit something.");
 				}
@@ -133,21 +137,12 @@ public class Player extends Creature implements IUpdateHandler
 			}
         });
         // register the grahics
-		scene.getTopLayer().addEntity(sprite);
+		//scene.getTopLayer().addEntity(sprite);
 		world.registerPhysicsConnector(new PhysicsConnector(sprite, body, true, true, false, false));
 		
 		return player;
 	}
-	
-	public Vector2 getPosition()
-	{
-		return body.getPosition();
-	}
-	
-	public Body getBody() { return this.body; }
-	
-	public AnimatedSprite getSprite() { return this.sprite; }
-	
+			
 	public void centerCamera(final Camera cam)
 	{
 		cam.setChaseShape(sprite);
@@ -155,29 +150,24 @@ public class Player extends Creature implements IUpdateHandler
 	
 	public void sendTo(final Section section, final Vector2 position)
 	{
-		if (activeSection != null)
-		{
-			// remove from old section
-			activeSection.getTopLayer().removeEntity(this.sprite);
-		}
-		activeSection = section;
-		// add to the new
-		this.spawnPosition = position;
-		this.body.setTransform(position, 0);
-		activeSection.getTopLayer().addEntity(this.sprite);
-	}
-	
-	public void jump()
-	{
-		//TODO: use a pool
-		this.activeSection.runOnUpdateThread(new Runnable()
+		// post to update thread to avoid synchronization errors
+		myEngine.runOnUpdateThread(new Runnable()
 		{
 			@Override
 			public void run() 
 			{
-				Player.this.body.setLinearVelocity(new Vector2(Player.this.body.getLinearVelocity().x, Player.this.maxjump));
-				Player.this.setAnimation(ANIMATION_JUMP);
-				Player.this.canJump = false;
+				if (activeSection != null)
+				{
+					// remove from old section
+					activeSection.getTopLayer().removeEntity(Player.this.sprite);
+				}
+				activeSection = section;
+				// add to the new
+				Player.this.spawnPosition = position;
+				Player.this.body.setTransform(position, 0);
+				activeSection.getTopLayer().addEntity(Player.this.sprite);
+				
+				activeSection.setAsCurrentSection();
 			}
 		});
 	}
@@ -192,27 +182,15 @@ public class Player extends Creature implements IUpdateHandler
 		wp.activate();
 	}
 	
-	public void spawn()
+	private void updateState(int i)
 	{
-		if (lastWayPoint == null)
-		{
-			this.body.setTransform(this.spawnPosition, 0);
-		}
-		else
-		{
-			this.body.setTransform(lastWayPoint.getPosition(), 0);
-		}
-	}
-	
-	private void setAnimation(int i)
-	{
-		this.animation = i;
+		this.state = i;
 		
-		if (i == ANIMATION_WALKING)
+		if (i == STATE_WALKING || i == STATE_FLYING)
 			sprite.animate(new long[]{400,300,300,300}, 0, 3, 0, StartWalking.instance);
-		else if (i == ANIMATION_JUMP)
+		else if (i == STATE_JUMPING || i == STATE_FALLING)
 			this.sprite.animate(new long[]{100,100,200,300}, 4, 7, false);
-		else if (i == ANIMATION_STILL)
+		else if (i == STATE_STILL)
 			this.sprite.animate(new long[]{300,300,300,300}, 4, 7, true);
 		else
 			return ; //error	
@@ -220,61 +198,35 @@ public class Player extends Creature implements IUpdateHandler
 	
 	public void onFlyControlChange(final BaseOnScreenControl control, final float pX, final float pY)
 	{
-		if (pX * pX * pY * pY > 0.0001)
+		if (pX * pX * pY * pY > Section.ONE_PIXEL)
 		{
-			flying = true;
+			this.updateState(STATE_FLYING);
 			flySpeed.x = pX * 1000f;
 			flySpeed.y = pY * 1000f;
-		}
-		else
-		{
-			flying = false;
 		}
 	}
 	
 	public void onControlChange(final BaseOnScreenControl control, final float pValueX, final float pValueY) 
 	{
-		acceleration.set(pValueX * 20f, 0);
-		
+		stickX = pValueX;
+		stickY = pValueY;
 	}
 	
 	@Override
 	public void onUpdate(final float pSecondsElapsed)
-	{
-		bottom.setTransform(body.getWorldCenter().tmp().add(0, sprite.getWidth() * 0.5f / Section.PIXRATIO), 0);
-		
-		if (this.body.getLinearVelocity().x < -1 * Section.ONE_PIXEL && faceRight)
+	{		
+		if (activeSection.getBoundaries().contains(this.body.getPosition().x, this.body.getPosition().y) == false)
 		{
-			faceRight = false;
-			this.setAnimation(ANIMATION_WALKING);
-			this.sprite.getTextureRegion().setFlippedHorizontal(true);
-		}
-		if (this.body.getLinearVelocity().x > Section.ONE_PIXEL && !faceRight)
-		{
-			faceRight = true;
-			this.setAnimation(ANIMATION_WALKING);
-			this.sprite.getTextureRegion().setFlippedHorizontal(false);
+			this.body.setTransform(spawnPosition, 0);
+			this.activeSection.getLevel().setTopText("OUT OF BOUNDS");
 		}
 		
-		// update animations based on movement
-		if (this.animation != ANIMATION_STILL) 
-		{
-			if (this.body.getLinearVelocity().len() <= 0.000001f)
-				this.setAnimation(ANIMATION_STILL);
-		}
-		else if (this.body.getLinearVelocity().len() > 0.000001f)
-		{
-			this.setAnimation(ANIMATION_WALKING);
-		}
-		// multiply acceleration by seconds elapsed, add to velocity
-		if (this.body.getLinearVelocity().len() < maxspeed)
-		{ // if it's bigger than maxspeed, normalize and scale it to maxspeed
-			this.body.setLinearVelocity(this.body.getLinearVelocity().add(this.acceleration.tmp().mul(pSecondsElapsed)));
-		}
-		if (flying == true)
+		if (this.state == STATE_FLYING)
 		{
 			this.body.setLinearVelocity(flySpeed.tmp().mul(pSecondsElapsed));
 		}
+		
+		bottom.setTransform(body.getWorldCenter().tmp().add(0, sprite.getWidth() * 0.5f / Section.PIXRATIO), 0);
 	}
 
 	@Override
@@ -284,13 +236,13 @@ public class Player extends Creature implements IUpdateHandler
 		
 	}
 	
+	/*
+	 * I still have no idea how the return values work for touch events in andengine
+	 * I know that in android, you return true if you've handled the event and no further
+	 * processing is necessary, or false to let other events go.
+	 */
 	public boolean onSceneTouchEvent(TouchEvent e)
 	{
-		if (this.canJump)
-		{
-			this.jump();
-			return false;
-		}
 		
 		return true;
 	}

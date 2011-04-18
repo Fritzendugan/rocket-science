@@ -31,7 +31,11 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.hardware.SensorManager;
+import android.text.format.Time;
 import android.util.Log;
+import android.view.ScaleGestureDetector;
+import android.view.ScaleGestureDetector.OnScaleGestureListener;
+import android.widget.Toast;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -40,11 +44,12 @@ import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.rocketscience.RocketScience;
 import com.rocketscience.helpers.ContactListenerManager;
 import com.rocketscience.objects.BaseObject;
+import com.rocketscience.objects.Door;
 import com.rocketscience.player.Player;
 
-public class LevelScreen extends Scene
+public class LevelScreen
 {
-	protected final static int MAJOR_REVISION = 4, MINOR_REVISION = 0;
+	protected final static int MAJOR_REVISION = 5, MINOR_REVISION = 0;
 	protected final static String CONTROL_STICK_BASE_TEX_FILE = "gfx/mobs/controlStickBase.png",
 	                              CONTROL_STICK_KNOB_TEX_FILE = "gfx/mobs/controlStickKnob.png";
 	protected final Engine myEngine;
@@ -59,16 +64,15 @@ public class LevelScreen extends Scene
 	protected final Player player;
 	protected final AnalogOnScreenControl analogStick, analogStickFly;
 	protected final HUD myHUD; // the heads up display of the game, has stuff like score, info, etc.
-	private final Font mFont;
-	private final ChangeableText tTop, tBottom;
+	private final Font mFont; // font used for debug text
+	private final ChangeableText tTop, tBottom; // top and bottom debug text
+	protected final ScaleGestureDetector pinchAndZoomDetector;
 	
 	protected short spawnSectionKey = -1;
 	protected Vector2 spawnPosition = null;
 	
 	public LevelScreen(final int pLayerCount, final Engine e, final ZoomCamera c, final RocketScience main) 
-	{
-		super(pLayerCount);
-		
+	{		
 		myEngine = e;
 		myCamera = c;
 		loadingScreen = main;
@@ -142,7 +146,7 @@ public class LevelScreen extends Scene
 		});
 		
 		// player
-		player = Player.MakePlayer(0, 0, this, myWorld, main, myEngine.getTextureManager());
+		player = Player.MakePlayer(0, 0, myWorld, main, myEngine);
 		player.centerCamera(myCamera);
 		myEngine.registerUpdateHandler(player);
 		
@@ -187,7 +191,8 @@ public class LevelScreen extends Scene
 			@Override
 			public void onControlClick(AnalogOnScreenControl pAnalogOnScreenControl) 
 			{
-				
+				//player.spawn();
+				Toast.makeText(loadingScreen, "Respawned", Toast.LENGTH_SHORT);
 			}
 			@Override
 			public void onControlChange(BaseOnScreenControl pBaseOnScreenControl, float pValueX,float pValueY) 
@@ -203,6 +208,17 @@ public class LevelScreen extends Scene
 		//analogStick.getControlBase().setScale(scale);
 		analogStickFly.refreshControlKnobPosition();
 		analogStick.setChildScene(analogStickFly);
+		
+		// Gesture Detectors
+		this.pinchAndZoomDetector = new ScaleGestureDetector(this.loadingScreen, new ScaleGestureDetector.SimpleOnScaleGestureListener()
+		{
+			@Override
+			public boolean onScale(ScaleGestureDetector detector) 
+			{
+				myCamera.setZoomFactor(myCamera.getZoomFactor() * detector.getScaleFactor());
+				return true; // return true if the event was handled
+			}
+		});
 	}
 	
 	/* 
@@ -211,7 +227,6 @@ public class LevelScreen extends Scene
 	 */
 	protected void loadResources(final InputStream inp, final Context context, final long fileLength) throws IOException
 	{
-		int progress; // the number of bytes read
 		Scanner in = new Scanner(inp);
 		final TextureManager texman = myEngine.getTextureManager();
 		Short k; // the key for the texture
@@ -276,10 +291,6 @@ public class LevelScreen extends Scene
 			else if (line.length == 2) // load a song
 			{
 				//TODO: load song
-				//add song here
-				//line[0] key
-				//line[1] path
-				
 			}
 			else // change the asset path
 			{
@@ -295,7 +306,6 @@ public class LevelScreen extends Scene
 	 */
 	protected void loadFromBinaryFile(final InputStream inputStream, final Context context, final long fileLength) throws IOException
 	{
-		long progress; // how many bytes have been read
 		final DataInputStream inp = new DataInputStream(inputStream);
 		//TODO: create a visual loading bar
 		final int revMajor, revMinor;
@@ -334,13 +344,17 @@ public class LevelScreen extends Scene
 		numSections = inp.readInt();
 		for (int i = 0; i < numSections; i++)
 		{
+			final Section newSection;
 			final short key = inp.readShort();
 			final Rectangle bb = new Rectangle(inp.readFloat(), inp.readFloat(), inp.readFloat(), inp.readFloat());
 			bb.setWidth(bb.getWidth() - bb.getX());
 			bb.setHeight(bb.getHeight() - bb.getY());
-			this.sections.put(key, new Section(2, this, myWorld, myCamera, myEngine, textures, player, bb, key));
-			this.sections.get(key).load(inp, context);
-			//sections[i].setChildScene(analogStick); // add the analog stick to the screen
+			newSection = new Section(2, this, myWorld, myCamera, myEngine, textures, player, bb, key);
+			newSection.load(inp, context);
+			newSection.setTouchAreaBindingEnabled(true);
+			newSection.setOnAreaTouchTraversalFrontToBack();
+			newSection.makeInactive();
+			this.sections.put(key, newSection);
 		}
 	}
 	
@@ -358,32 +372,32 @@ public class LevelScreen extends Scene
 	 */
 	public void loadLevel(final Context context, final InputStream inputStream, final InputStream inputStream2) throws IOException, FileNotFoundException
 	{	
-		long length = 0, skip;
-		/*// load resource data
-		length = 0;
-		do
-		{
-			skip = inputStream.skip(Long.MAX_VALUE);
-			length += skip;
-		} while (skip > 0);
-		inputStream.reset();//*/
-		this.loadResources(inputStream, context, length);
+		long start, stop;
+		start = System.currentTimeMillis();
+		Door.ResetDoorMap();
+
+		// load resources
+		this.loadResources(inputStream, context, 0);
 		
-		/*// load binary data
-		length = 0;
-		do
-		{
-			skip = inputStream2.skip(Long.MAX_VALUE);
-			length += skip;
-		} while (skip > 0);
-		inputStream2.reset();//*/
-		this.loadFromBinaryFile(inputStream2, context, length);
+		// load level data
+		this.loadFromBinaryFile(inputStream2, context, 0);
 		
-		this.setCurrentSection(spawnSectionKey);	
+		// build maps
+		Door.BuildDoorMap();
+		
+		// send player to the starting section	
+		this.setCurrentSection(this.spawnSectionKey);
 		player.sendTo(this.curSection, this.spawnPosition);
-		player.spawn();
 		
+		// book keeping
 		this.dumpToLog();
+		stop = System.currentTimeMillis();
+		Log.e("RocketScience->LevelScreen", "time to load: " + String.valueOf(stop - start) + "ms");
+	}
+	
+	public RocketScience getLoadingScreen()
+	{
+		return this.loadingScreen;
 	}
 	
 	public Section getCurrentSection()
@@ -403,11 +417,22 @@ public class LevelScreen extends Scene
 	
 	public void setCurrentSection(final short num)
 	{
-		// do anything we have to to the old section
+		if (this.curSectionKey == num)
+			return;
+		// do anything we have to to the old section	
+		if (curSection != null)
+			curSection.makeInactive();
+		
 		// now set the new section
 		curSectionKey = num;
 		curSection = sections.get(curSectionKey);
 		myEngine.setScene(curSection);
+		curSection.makeActive();
+	}
+	
+	public void setCurrentSection(final Section section)
+	{
+		setCurrentSection(section.getKey());
 	}
 
 	public void dumpToLog()
@@ -421,6 +446,11 @@ public class LevelScreen extends Scene
 			Log.e("RocketScience->LevelScreenDUMP", "begin new section");
 			s.dumpToLog();
 		}
+	}
+	
+	public ScaleGestureDetector getScaleGestureDetector()
+	{
+		return this.pinchAndZoomDetector;
 	}
 	
 	public void setTopText(final String t)

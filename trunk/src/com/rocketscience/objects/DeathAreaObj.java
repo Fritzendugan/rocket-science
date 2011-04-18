@@ -113,7 +113,7 @@ public class DeathAreaObj extends BaseObject
 					//TODO handle real death
 					if (a.getBody().equals(player) || b.getBody().equals(player))
 					{
-						player.spawn();
+						//player.spawn();
 						Toast.makeText(context, "You have died.", Toast.LENGTH_SHORT);
 					}
 				}
