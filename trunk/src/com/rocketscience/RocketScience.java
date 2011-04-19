@@ -28,7 +28,8 @@ public class RocketScience extends BaseGameActivity
 {
         private static final int CAMERA_WIDTH = 720;
         private static final int CAMERA_HEIGHT = 480;
- 
+        private static final String FIRST_LEVEL_NAME = "levels/gay";
+        
         private ZoomCamera mCamera;
         private float progress; // from 0 to 1
  
@@ -85,7 +86,7 @@ public class RocketScience extends BaseGameActivity
             final LevelScreen firstLevel = new LevelScreen(1, mEngine, mCamera, this);
             try 
             {
-            	firstLevel.loadLevel(this, "levels/test");
+            	firstLevel.loadLevel(this, FIRST_LEVEL_NAME);
 			} 
             catch (NotFoundException e) 
             {

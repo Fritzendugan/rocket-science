@@ -41,6 +41,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactListener;
+import com.rocketscience.BoundingBox;
 import com.rocketscience.RocketScience;
 import com.rocketscience.helpers.ContactListenerManager;
 import com.rocketscience.objects.BaseObject;
@@ -146,7 +147,7 @@ public class LevelScreen
 		});
 		
 		// player
-		player = Player.MakePlayer(0, 0, myWorld, main, myEngine);
+		player = Player.MakePlayer(0, 0, myWorld, main, this);
 		player.centerCamera(myCamera);
 		myEngine.registerUpdateHandler(player);
 		
@@ -216,7 +217,7 @@ public class LevelScreen
 			public boolean onScale(ScaleGestureDetector detector) 
 			{
 				myCamera.setZoomFactor(myCamera.getZoomFactor() * detector.getScaleFactor());
-				return true; // return true if the event was handled
+				return false; // return true if the event was handled
 			}
 		});
 	}
@@ -236,6 +237,7 @@ public class LevelScreen
 		final int revMajor, revMinor; // version stuff
 		String buf; // current line
 		String dir; // current directory
+		final String subject; // the subject/theme of the level
 		
 		// check version info
 		// level loader should be backwards compatible for minor revisions
@@ -243,9 +245,9 @@ public class LevelScreen
 		revMajor = in.nextInt();
 		if (revMajor != LevelScreen.MAJOR_REVISION)
 		{
-			Debug.e("Level Major Revision number(" + Integer.toString(revMajor) + ") does not match Loader Major Revision number (" + Integer.toString(LevelScreen.MAJOR_REVISION) + ").\n" +
+			Log.e("RocketScience->LevelLoader", "Level Major Revision number(" + Integer.toString(revMajor) + ") does not match Loader Major Revision number (" + Integer.toString(LevelScreen.MAJOR_REVISION) + ").\n" +
 					"Please update to the newest version of this program.");
-			return;
+			//return;
 		}
 		revMinor = in.nextInt();
 		in.nextLine();
@@ -260,14 +262,15 @@ public class LevelScreen
 		}
 		else
 		{// can't continue loading level
-			Debug.e("Level loader out of date! (LevelLoader v" + Integer.toString(LevelScreen.MAJOR_REVISION) + "." + Integer.toString(LevelScreen.MINOR_REVISION) +
+			Log.e("RocketScience->LevelLoader", "Level loader out of date! (LevelLoader v" + Integer.toString(LevelScreen.MAJOR_REVISION) + "." + Integer.toString(LevelScreen.MINOR_REVISION) +
 					                           " < file v" + Integer.toString(revMajor) + "." + Integer.toString(revMinor) + ")" +
 					                           "\nCan't load file, update to newest version to load file.");
-			return;
+			//return;
 		}
 		
 		dir = "";
 		progress = 0;
+		subject = in.nextLine();
 		while (in.hasNext())
 		{
 			buf = in.nextLine();
@@ -291,6 +294,9 @@ public class LevelScreen
 			else if (line.length == 2) // load a song
 			{
 				//TODO: load song
+				// line[0] is the key
+				// line[1] is the path
+				
 			}
 			else // change the asset path
 			{
@@ -317,9 +323,9 @@ public class LevelScreen
 		revMajor = inp.readInt();
 		if (revMajor != LevelScreen.MAJOR_REVISION)
 		{
-			Debug.e("Level Major Revision number(" + Integer.toString(revMajor) + ") does not match Loader Major Revision number (" + Integer.toString(LevelScreen.MAJOR_REVISION) + ").\n" +
+			Log.e("RocketScience->LevelLoader", "Level Major Revision number(" + Integer.toString(revMajor) + ") does not match Loader Major Revision number (" + Integer.toString(LevelScreen.MAJOR_REVISION) + ").\n" +
 					"Please update to the newest version of this program.");
-			return;
+			//return;
 		}
 		revMinor = inp.readInt();
 		if (revMinor == LevelScreen.MINOR_REVISION)
@@ -332,23 +338,28 @@ public class LevelScreen
 		}
 		else
 		{// can't continue loading level
-			Debug.e("Level loader out of date! (LevelLoader v" + Integer.toString(LevelScreen.MAJOR_REVISION) + "." + Integer.toString(LevelScreen.MINOR_REVISION) +
+			Log.e("RocketScience->LevelLoader", "Level loader out of date! (LevelLoader v" + Integer.toString(LevelScreen.MAJOR_REVISION) + "." + Integer.toString(LevelScreen.MINOR_REVISION) +
 					                           " < file v" + Integer.toString(revMajor) + "." + Integer.toString(revMinor) + ")" +
 					                           "\nCan't load file, update to newest version to load file.");
-			return;
+			//return;
 		}
 		// load the spawn area
 		spawnSectionKey = inp.readShort();
-		spawnPosition = new Vector2(inp.readFloat(), inp.readFloat()).mul(1 / Section.PIXRATIO);
+		spawnPosition = new Vector2(inp.readFloat(), inp.readFloat()).mul(Section.ONE_PIXEL);
 		// read the sections
 		numSections = inp.readInt();
 		for (int i = 0; i < numSections; i++)
 		{
 			final Section newSection;
 			final short key = inp.readShort();
-			final Rectangle bb = new Rectangle(inp.readFloat(), inp.readFloat(), inp.readFloat(), inp.readFloat());
-			bb.setWidth(bb.getWidth() - bb.getX());
-			bb.setHeight(bb.getHeight() - bb.getY());
+			final float left, right, top, bottom;
+			final BoundingBox bb;
+			left = inp.readFloat() * Section.ONE_PIXEL;
+			top = inp.readFloat() * Section.ONE_PIXEL;
+			right = inp.readFloat() * Section.ONE_PIXEL;
+			bottom = inp.readFloat() * Section.ONE_PIXEL;
+			bb = new BoundingBox(left, top, right, bottom);
+			
 			newSection = new Section(2, this, myWorld, myCamera, myEngine, textures, player, bb, key);
 			newSection.load(inp, context);
 			newSection.setTouchAreaBindingEnabled(true);
@@ -374,16 +385,12 @@ public class LevelScreen
 	{	
 		long start, stop;
 		start = System.currentTimeMillis();
-		Door.ResetDoorMap();
 
 		// load resources
 		this.loadResources(inputStream, context, 0);
 		
 		// load level data
 		this.loadFromBinaryFile(inputStream2, context, 0);
-		
-		// build maps
-		Door.BuildDoorMap();
 		
 		// send player to the starting section	
 		this.setCurrentSection(this.spawnSectionKey);
@@ -398,6 +405,11 @@ public class LevelScreen
 	public RocketScience getLoadingScreen()
 	{
 		return this.loadingScreen;
+	}
+	
+	public Section getSection(short key)
+	{
+		return sections.get(key);
 	}
 	
 	public Section getCurrentSection()

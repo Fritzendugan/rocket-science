@@ -8,7 +8,7 @@ public class CollisionFilter
 	                          CATEGORY_NOCOLLISION = 0x0016;
 	
 	public static final short MASK_NORMAL = CATEGORY_NORMAL + CATEGORY_PLAYER + CATEGORY_NONPLAYER,
-	                          MASK_PLAYER = CATEGORY_PLAYER,
-	                          MASK_NONPLAYER = CATEGORY_NONPLAYER,
+	                          MASK_PLAYER = CATEGORY_PLAYER + CATEGORY_NORMAL,
+	                          MASK_NONPLAYER = CATEGORY_NONPLAYER + CATEGORY_NORMAL,
 	                          MASK_NOCOLLISION = CATEGORY_NOCOLLISION;
 }

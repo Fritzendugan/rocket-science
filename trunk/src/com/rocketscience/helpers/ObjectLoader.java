@@ -2,22 +2,21 @@ package com.rocketscience.helpers;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.TreeMap;
 
 import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.extension.physics.box2d.PhysicsWorld;
 import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.TextureManager;
 import org.anddev.andengine.opengl.texture.region.TextureRegionFactory;
+import org.anddev.andengine.util.Debug;
 
 import android.content.Context;
-import android.util.Log;
-
+import com.rocketscience.level.LevelScreen;
 import com.rocketscience.level.Section;
-import com.rocketscience.mobs.BodyWithActions;
 import com.rocketscience.objects.BaseObject;
-import com.rocketscience.objects.DeathAreaObj;
 import com.rocketscience.objects.Door;
-import com.rocketscience.objects.WayPointObj;
+import com.rocketscience.objects.WayPoint;
 import com.rocketscience.player.Player;
 
 public class ObjectLoader 
@@ -31,6 +30,9 @@ public class ObjectLoader
 	public static Player player;
 	public static Section currentSection;
 	public static Context context;
+	public static LevelScreen currentLevel;
+	
+	private static TreeMap<Short, ObjectLoadingAdapter> loaders;
 	
 	/*
 	 * load whatever resources necessary to spawn objects
@@ -41,6 +43,16 @@ public class ObjectLoader
 		texman.loadTexture(TEXTURE);
 	}
 	
+	public static void generateLoadingTree() 
+	{
+		loaders = new TreeMap<Short, ObjectLoadingAdapter>();
+		
+		// add the loading methods for every object
+		loaders.put(ObjectKeys.DOOR, Door.getLoadingAdapter());
+		loaders.put(ObjectKeys.WAY_POINT, WayPoint.getLoadingAdapter());
+		loaders.put(ObjectKeys.WORLD_SHAPE, currentSection.getWorldShapeLoadingAdapter());
+	}
+
 	public static Texture getObjectTexture()
 	{
 		return TEXTURE;
@@ -49,28 +61,17 @@ public class ObjectLoader
 	public static BaseObject loadObject(final DataInputStream inp, final short key) throws IOException
 	{
 		final BaseObject obj;
+		final ObjectLoadingAdapter loader;
 		
-		if (key == ObjectKeys.WORLD_SHAPE)
+		loader = loaders.get(key);
+		if (loader == null)
 		{
-			//TODO: this could be done more nicely
-			obj = ObjectLoader.currentSection.loadPolygon(inp, ObjectLoader.context);
-		}
-		else if (key == ObjectKeys.DOOR)
-		{
-			obj = Door.Load(inp);
-		}
-		else if (key == ObjectKeys.WAY_POINT)
-		{
-			obj = WayPointObj.Load(inp, currentSection, TEXTURE, physicsWorld, player);
-		}
-		else if (key == ObjectKeys.DEATH_AREA)
-		{
-			obj = DeathAreaObj.Load(inp, context, physicsWorld, player);
+			Debug.e("Invalid key given for object (" + String.valueOf(key) + ").");
+			obj = null;
 		}
 		else
 		{
-			Log.e("RocketScience->ObjectLoader", "Invalid ObjectKey: " + key);
-			obj = null;
+			obj = loader.load(inp);
 		}
 		
 		return obj;

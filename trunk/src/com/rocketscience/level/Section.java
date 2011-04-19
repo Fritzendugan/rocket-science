@@ -22,23 +22,23 @@ import org.anddev.andengine.extension.physics.box2d.PhysicsWorld;
 import org.anddev.andengine.input.touch.TouchEvent;
 import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
-import org.anddev.andengine.util.Debug;
 
 import android.content.Context;
 import android.util.Log;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
-import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.rocketscience.BoundingBox;
 import com.rocketscience.helpers.CollisionFilter;
+import com.rocketscience.helpers.ObjectKeys;
 import com.rocketscience.helpers.ObjectLoader;
+import com.rocketscience.helpers.ObjectLoadingAdapter;
 import com.rocketscience.helpers.PolygonHelper;
-import com.rocketscience.mobs.BodyWithActions;
 import com.rocketscience.mobs.MoveNode;
 import com.rocketscience.objects.BaseObject;
-import com.rocketscience.objects.Door;
+import com.rocketscience.objects.BodyWithActions;
 import com.rocketscience.player.Player;
 
 /* 
@@ -65,12 +65,12 @@ public class Section extends Scene implements AnalogOnScreenControl.IAnalogOnScr
 	protected final TreeMap<Short, Texture> textures; // textures used in the level
 	protected final LevelScreen level; // the level to which this belongs
 	protected final Player player;
-	protected final Rectangle boundingBox; // the boundaries of the section
+	protected final BoundingBox boundingBox; // the boundaries of the section
 	protected final short key;
 	
 
 	public Section(final int pLayerCount, final LevelScreen ls, final PhysicsWorld pw, final ZoomCamera c, 
-			final Engine e, final TreeMap<Short, Texture> t, final Player p, final Rectangle bb, final short k) 
+			final Engine e, final TreeMap<Short, Texture> t, final Player p, final BoundingBox bb, final short k) 
 	{
 		super(pLayerCount);
 		myEngine = e;
@@ -118,18 +118,21 @@ public class Section extends Scene implements AnalogOnScreenControl.IAnalogOnScr
 		final float elasticity, friction;
 		final float[] borderColor = new float[4];
 		final int fallsDown, hp;
+		final boolean isSensor; // whether the body is a sensor
+		final float damageDealt; // how much damage it deals
+		final long damageInterval; // interval when the damage is dealt, -1 for none
 		MoveNode[] moveNodes;
 		FixtureDef polyDef;
 		// load attributes
-		cx = inp.readFloat();
-		cy = inp.readFloat();
+		cx = inp.readFloat() * Section.ONE_PIXEL;
+		cy = inp.readFloat() * Section.ONE_PIXEL;
 		angle = inp.readFloat();
 		angularVelocity = inp.readFloat();
 		// load shape data
 		numVerts = inp.readInt();
 		for (int i = 0; i < numVerts; i++)
 		{
-			verts.add(new Vector2(inp.readFloat() / Section.PIXRATIO, inp.readFloat() / Section.PIXRATIO));
+			verts.add(new Vector2(cx + inp.readFloat() * Section.ONE_PIXEL, cy + inp.readFloat() * Section.ONE_PIXEL));
 		}
 		// get fixture def
 		this.fixDefLookup.elasticity = inp.readFloat();
@@ -138,13 +141,15 @@ public class Section extends Scene implements AnalogOnScreenControl.IAnalogOnScr
 		if (polyDef == null)
 		{
 			polyDef = PhysicsFactory.createFixtureDef(0, fixDefLookup.elasticity, fixDefLookup.friction);
+			polyDef.filter.categoryBits = CollisionFilter.CATEGORY_NORMAL;
+			polyDef.filter.maskBits = CollisionFilter.MASK_NORMAL;
 			fixDefs.put(fixDefLookup.clone(), polyDef);
 		}
 		// get movePath
 		moveNodes = new MoveNode[inp.readInt()];
 		for (int i = 0; i < moveNodes.length; i++)
 		{
-			moveNodes[i] = new MoveNode(inp.readFloat(), inp.readFloat(), inp.readLong(), inp.readLong());
+			moveNodes[i] = new MoveNode(inp.readFloat() * Section.ONE_PIXEL, inp.readFloat() * Section.ONE_PIXEL, inp.readLong(), inp.readLong());
 		}
 		if (moveNodes.length < 2)
 			moveNodes = null;
@@ -158,23 +163,49 @@ public class Section extends Scene implements AnalogOnScreenControl.IAnalogOnScr
 		// read flags
 		fallsDown = inp.readInt();
 		hp = inp.readInt();
+		isSensor = inp.readBoolean();
+		if ((damageDealt = inp.readFloat()) > 0)
+			damageInterval = inp.readLong();
+		else
+			damageInterval = -1;
 		
 		// do work
 		final float[] triverts = PolygonHelper.getTriangulatedVertices(verts, Section.PIXRATIO);
-		final Polygon poly = PolygonHelper.getPolygon(cx, cy, triverts, tex, 0, 0, tex.getWidth(), tex.getHeight());
+		final Polygon poly = PolygonHelper.getPolygon(0, 0, triverts, tex, 0, 0, tex.getWidth(), tex.getHeight());
 		poly.setUpdatePhysics(false);
 		this.getTopLayer().addEntity(poly);
 
 		// create the circle body
+		if (isSensor)
+		{
+			final FixtureDef temp = PhysicsFactory.createFixtureDef(polyDef.density, 
+					                 polyDef.restitution, polyDef.friction, true, 
+					                 polyDef.filter.categoryBits, polyDef.filter.maskBits, 
+					                 polyDef.filter.groupIndex);
+
+			polyDef = temp;
+		}
 		final Body body = PolygonHelper.getPolygonBody(cx, cy, Section.PIXRATIO, myWorld, BodyType.StaticBody, polyDef, verts);
 		myWorld.registerPhysicsConnector(new PhysicsConnector(poly, body, true, true, false, false));
 		body.setTransform(new Vector2(cx * Section.ONE_PIXEL, cy * Section.ONE_PIXEL), 0);
-		
+
 		// build bwa
-		BodyWithActions bwa = new BodyWithActions(moveNodes, body, poly, angularVelocity);
+		BodyWithActions bwa = new BodyWithActions(moveNodes, body, poly, angularVelocity, isSensor, damageDealt, damageInterval);
 		this.registerUpdateHandler(bwa);
 
 		return bwa;
+	}
+	
+	public ObjectLoadingAdapter getWorldShapeLoadingAdapter()
+	{
+		return new ObjectLoadingAdapter(ObjectKeys.BODY_WITH_ACTIONS)
+		{
+			@Override
+			public BaseObject load(DataInputStream inp) throws IOException 
+			{
+				return loadPolygon(inp, Section.this.level.getLoadingScreen());
+			}
+		};
 	}
 	
 	/*
@@ -205,7 +236,7 @@ public class Section extends Scene implements AnalogOnScreenControl.IAnalogOnScr
 			pF = inp.readFloat();
 			x = inp.readFloat();
 			y = inp.readFloat();
-			tempTexture = textures.get(inp.readByte());
+			tempTexture = textures.get(inp.readShort());
 			tempRegion = new TextureRegion(tempTexture, 0, 0, tempTexture.getWidth(), tempTexture.getHeight());
 			autoPB.addParallaxEntity(new ParallaxEntity(pF, new Sprite(x,y,tempRegion)));
 		}
@@ -236,6 +267,8 @@ public class Section extends Scene implements AnalogOnScreenControl.IAnalogOnScr
 		ObjectLoader.player = player;
 		ObjectLoader.context = context;
 		ObjectLoader.engine = this.myEngine;
+		ObjectLoader.currentLevel = this.level;
+		ObjectLoader.generateLoadingTree();
 		final int numObjects = inp.readInt();
 		for (int i = 0; i < numObjects; i++)
 		{
@@ -271,7 +304,7 @@ public class Section extends Scene implements AnalogOnScreenControl.IAnalogOnScr
 		return this.level;
 	}
 	
-	public Rectangle getBoundaries()
+	public BoundingBox getBoundaries()
 	{
 		return boundingBox;
 	}
@@ -322,8 +355,8 @@ public class Section extends Scene implements AnalogOnScreenControl.IAnalogOnScr
 	{
 		//System.out.println("Number of fingers down: " + String.valueOf(e.getMotionEvent().getPointerCount()));
 		// process gestures
-		if (this.level.getScaleGestureDetector().onTouchEvent(e.getMotionEvent()))
-			return true;
+		//if (this.level.getScaleGestureDetector().onTouchEvent(e.getMotionEvent()) == false)
+		//	return true;
 		
 		// process player
 		if (player.onSceneTouchEvent(e) == false)

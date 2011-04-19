@@ -1,47 +1,34 @@
 package com.rocketscience.objects.creatures;
 
-import java.util.TreeMap;
-
 import org.anddev.andengine.engine.handler.IUpdateHandler;
-import org.anddev.andengine.entity.shape.Shape;
 import org.anddev.andengine.entity.sprite.AnimatedSprite;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.rocketscience.actions.Action;
+import com.rocketscience.actions.SpawnAction;
 import com.rocketscience.objects.BaseObject;
 
 public class Creature extends BaseObject implements IUpdateHandler
 {
-	protected final TreeMap<Integer,Action> actions = new TreeMap<Integer,Action>();
-
+	private static final Vector2 VECTOR2_ZERO = new Vector2(0,0);
+	
 	protected final Vector2 startingPosition;
 	protected final AnimatedSprite sprite;
 	
 	protected int curPath = 0; // the current path it's on
 	protected boolean forward = true; // whether it is moving forward or backward on the current path
-
+	// actions
+	protected final SpawnAction spawnAction;
+	
 	public Creature(final Body b, final AnimatedSprite s, final short k) 
 	{
 		super(b,s,k);
 		sprite = s;
 		startingPosition = b.getPosition();
-	}
-	
-	//must get a reference to an action to perform the action
-	public final Action getAction(Integer type)
-	{
-		return actions.get(type);
-	}
-
-	public final void addAction(Integer type, Action action)
-	{
-		actions.put(type, action);
-	}
-
-	public final void removeAction(Integer type)
-	{
-		actions.remove(type);
+		
+		// load actions
+		spawnAction = new SpawnAction(this);
+		this.addAction(spawnAction);
 	}
 	
 	public Vector2 getPosition()
@@ -69,8 +56,8 @@ public class Creature extends BaseObject implements IUpdateHandler
 	@Override
 	public void reset() 
 	{
-		// TODO Auto-generated method stub
-		
+		this.body.setTransform(startingPosition, 0);
+		this.body.setLinearVelocity(VECTOR2_ZERO);
 	}
 	
 	@Override
@@ -82,5 +69,18 @@ public class Creature extends BaseObject implements IUpdateHandler
 		buf.append("\nstartingPosition: ").append(startingPosition.toString());
 		buf.append("\n --- end BodyWithActions (id: ").append(id).append(") ---");
 		return buf.toString();
+	}
+
+	public boolean canAffordCost(float energyCost, float healthCost,
+			float sacrificePercent) 
+	{
+		// TODO Auto-generated method stub
+		return true;
+	}
+
+	public long getModifiedRechargeTime(long rechargeTime) 
+	{
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

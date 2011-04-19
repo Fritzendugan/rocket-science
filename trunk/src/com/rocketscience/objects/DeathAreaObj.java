@@ -28,7 +28,6 @@ import com.rocketscience.helpers.ObjectKeys;
 import com.rocketscience.helpers.ObjectLoader;
 import com.rocketscience.helpers.PolygonHelper;
 import com.rocketscience.level.Section;
-import com.rocketscience.mobs.BodyWithActions;
 import com.rocketscience.player.Player;
 
 /*

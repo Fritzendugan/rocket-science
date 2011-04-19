@@ -1,9 +1,13 @@
 package com.rocketscience.objects;
 
+import java.util.ArrayList;
+import java.util.TreeMap;
+
 import org.anddev.andengine.entity.shape.Shape;
 
 import com.badlogic.gdx.physics.box2d.Body;
-import com.rocketscience.helpers.ObjectKeys;
+import com.rocketscience.actions.Action;
+import com.rocketscience.actions.spells.Effect;
 
 public class BaseObject
 {
@@ -14,6 +18,14 @@ public class BaseObject
 	protected final long id;
 	protected final short type;
 	
+	public final boolean moves;
+	
+	protected final TreeMap<Integer,Action> actions = new TreeMap<Integer,Action>();
+	protected final ArrayList<Effect> effects = new ArrayList<Effect>();
+	
+	// state and stats
+	protected float hp;
+	
 	public BaseObject(final Body b, final Shape s, final short k)
 	{
 		id = _lastid++; // used to identify any object
@@ -22,6 +34,18 @@ public class BaseObject
 		type = k; // this is used for safe down-casting
 		b.setUserData(this); // this allows a link from any physics body back
 		                     // to the Object it belongs to.
+		
+		moves = true;
+	}
+	
+	public float getHP()
+	{
+		return hp;
+	}
+	
+	public void setHP(final float h)
+	{
+		hp = h;
 	}
 	
 	public long getID()
@@ -42,6 +66,27 @@ public class BaseObject
 	public String toString()
 	{
 		return "{BaseObject : id=" + String.valueOf(id) + " type=" + String.valueOf(type) + "}";
+	}
+	
+	//must get a reference to an action to perform the action
+	public final Action getAction(Integer key)
+	{
+		return actions.get(key);
+	}
+
+	public final void addAction(Action action)
+	{
+		actions.put(action.getKey(), action);
+	}
+
+	public final void removeAction(Integer key)
+	{
+		actions.remove(key);
+	}
+	
+	public void addEffect(Effect effect) 
+	{
+		effects.add(effect);	
 	}
 	
 }
