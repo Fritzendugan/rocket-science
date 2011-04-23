@@ -1,0 +1,19 @@
+#summary A list of things we still need to do
+
+= Introduction =
+
+Make sure we update this list as often as we can
+
+
+= Details =
+
+- OverWorld    (kyle)
+- Creature/Player physics (eric)
+- database (neth)
+- activities (george)
+- profile manager (george)
+- spells (eric)
+- enemies (?)
+- More graphics: spells, levels, etc. (?)
+- More questions (?)
+- 
