@@ -17,20 +17,20 @@ number of questions on each level
 <bg_img_width as int>
 <bg_img_height as int>
 <bg_img_full_path_in_assets_folder as String>
-<x location of back arrow as float>
-<y location of back arrow as float>
-<x location of next arrow as float>
-<y location of next arrow as float>
-<number of levels as int>
-<x location of level 1 as float>
-<y location of level 1 as float>
-<full path in assets folder to level 1's icon as String>
-<full path in assets folder to level 1 as String>
+<x_location_of_back_arrow as float>
+<y_location_of_back_arrow as float>
+<x_location_of_next_arrow as float>
+<y_location_of_next_arrow as float>
+<number_of_levels as int>
+<x_location_of_level_1 as float>
+<y_location_of_level_1 as float>
+<full_path_in_assets_folder_to_level_1's_icon as String>
+<full_path_in_assets_folder_to_level_1 as String>
 .
 .
 .
-<x location of level n as float>
-<y location of level n as float>
-<full path in assets folder to level n's icon as String>
-<full path in assets folder to level n as String>
+<x_location_of_level_n as float>
+<y_location_of_level_n as float>
+<full_path_in_assets_folder_to_level_n's_icon as String>
+<full_path_in_assets_folder_to_level_n as String>
 }}}
