@@ -7,4 +7,4 @@ A bunch of useful pages and stuff. Figure we can throw them all here.
 
 = Details =
 
-http://www.andengine.org/forums/tutorials/basegameactivity-lifecycle-t779.html - LifeCycle of the BaseGame Activity (onResume, etc.)
+http://www.andengine.org/forums/bugs/onresume-now-runs-before-onloadscene-t550.html - LifeCycle of the BaseGame Activity (onResume, etc.)
