@@ -12,10 +12,11 @@ file path of each level
 number of questions on each level
 
 = Details =
+the background image may not be more than 1024 x 512
+
+only 720 x 480 of this image will be drawn, however.
 
 {{{
-<bg_img_width as int>
-<bg_img_height as int>
 <bg_img_full_path_in_assets_folder as String>
 <x_location_of_back_arrow as float>
 <y_location_of_back_arrow as float>
