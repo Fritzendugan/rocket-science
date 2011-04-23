@@ -1,29 +1,42 @@
 #labels player,profile,stucture
-#how the playerProfile file is set up
+#how the player Profile file is set up
 
 = Introduction =
 This is how the player profile should be set up
 
 = Details =
- NAME:
- HIGESTLEVEL:
- HIGHESTWORLD:
- CURRENTMAP:
- CURRENTWORLD:
- CURRENTWAYPOINT:
- CURRENTSECTION:
- QIDS:
+NAME:
+
+HIGESTLEVEL:
+
+HIGHESTWORLD:
+
+CURRENTMAP:
+
+CURRENTWORLD:
+
+CURRENTWAYPOINT:
+
+CURRENTSECTION:
+
+QIDS:
 
 ---
 
 EXAMPLE::
 
 Jack
+
 5
+
 1
+
 3
+
 2
+
 2
+
 1
 1
 2
