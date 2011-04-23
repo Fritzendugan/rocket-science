@@ -9,7 +9,8 @@ Text file with newlines
 worlds are connected in consecutive order.
 
 FORMAT
-`
+
+{{{
 <number of worlds as int>
 <path to world 1>
 <path to world 2>
@@ -17,4 +18,4 @@ FORMAT
 .
 .
 <path to world "number of worlds as int">
-`
+}}}
