@@ -1,13 +1,20 @@
-#summary One-sentence summary of this page.
+#summary The format for the info.worlds file
 
 = Introduction =
 
-Add your content here.
+Text file with newlines
 
 
 = Details =
+worlds are connected in consecutive order.
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+FORMAT
+`
+<number of worlds as int>
+<path to world 1>
+<path to world 2>
+.
+.
+.
+<path to world "number of worlds as int">
+`
