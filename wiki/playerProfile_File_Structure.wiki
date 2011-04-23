@@ -7,6 +7,8 @@ This is how the player profile should be set up
 = Details =
 {{{
 NAME:
+MUSICVOLUME: (as a float, 0 for none, 1 for max)
+SFXVOLUME: (as a float, 0 for none, 1 for max)
 HIGESTLEVEL:
 HIGHESTWORLD:
 CURRENTMAP:
