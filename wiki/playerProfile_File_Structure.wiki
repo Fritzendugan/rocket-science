@@ -5,26 +5,20 @@
 This is how the player profile should be set up
 
 = Details =
+{{{
 NAME:
-
 HIGESTLEVEL:
-
 HIGHESTWORLD:
-
 CURRENTMAP:
-
 CURRENTWORLD:
-
 CURRENTWAYPOINT:
-
 CURRENTSECTION:
-
 QIDS:
+}}}
 
 ---
-
-{{{
 EXAMPLE::
+{{{
 Jack
 5
 1
