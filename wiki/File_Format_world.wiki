@@ -1,0 +1,36 @@
+#summary File Format for w*l*.world files, the file that contains information about a specific world
+
+= Introduction =
+treated as a binary file (no new lines or anything like that)
+
+Every world file contains information like:
+number of levels
+location on the overworld of each level
+location of the forward and backwards arrows
+file path of each level's icon (size of which is defined as constants in the world class)
+file path of each level
+number of questions on each level
+
+= Details =
+
+{{{
+<bg_img_width as int>
+<bg_img_height as int>
+<bg_img_full_path_in_assets_folder as String>
+<x location of back arrow as float>
+<y location of back arrow as float>
+<x location of next arrow as float>
+<y location of next arrow as float>
+<number of levels as int>
+<x location of level 1 as float>
+<y location of level 1 as float>
+<full path in assets folder to level 1's icon as String>
+<full path in assets folder to level 1 as String>
+.
+.
+.
+<x location of level n as float>
+<y location of level n as float>
+<full path in assets folder to level n's icon as String>
+<full path in assets folder to level n as String>
+}}}
