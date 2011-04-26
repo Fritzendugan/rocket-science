@@ -18,10 +18,6 @@ only 720 x 480 of this image will be drawn, however.
 
 {{{
 <bg_img_full_path_in_assets_folder as String>
-<x_location_of_back_arrow as float>
-<y_location_of_back_arrow as float>
-<x_location_of_next_arrow as float>
-<y_location_of_next_arrow as float>
 <number_of_levels as int>
 <full_path_in_assets_folder_to_level_1 as String>
 <x_location_of_level_1 as float>
