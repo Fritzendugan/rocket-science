@@ -13,3 +13,5 @@ http://www.andengine.org/forums/bugs/onresume-now-runs-before-onloadscene-t550.h
 http://developer.android.com/guide/topics/data/backup.html (Would this be needed for a player profile? or can we just use the file we were doing, then when they kill the activity we just back up everything on our own)
 
 http://denravonska-javadoc.googlecode.com/hg/doc/overview-summary.html - the unofficial javadoc for andengine
+
+http://code.google.com/p/androidscreencast/ - this program updates the phone's screen onto your computer screen.
