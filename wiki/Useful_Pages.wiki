@@ -17,3 +17,5 @@ http://denravonska-javadoc.googlecode.com/hg/doc/overview-summary.html - the uno
 http://code.google.com/p/androidscreencast/ - this program updates the phone's screen onto your computer screen.
 
 http://stackoverflow.com/questions/628659/how-can-i-manage-audio-volumes-sanely-in-my-android-app - sound stuff
+
+http://www.kat.ph/music-fritzendugan-calendulatropolis-full-album-t5101999.html - torrent to download the whole album. Alternatively http://music.fritzendugan.com/ will take you to the streaming page.
