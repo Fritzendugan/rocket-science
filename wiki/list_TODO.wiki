@@ -7,24 +7,20 @@ Make sure we update this list as often as we can
 
 = Details =
 
-- Creature/Player physics (eric)
+- tweak player control
 
-- enemies (?)
+- more enemies
 
 - More graphics: spells, levels, etc. (?)
 
-- More questions (?)
-
-- Floating Text (kyle)
-
-- spell screens (kyle)
-
-- Fix textures issue
-
-- title screen (Neth)
-
-- Level Editor (eric)
+- More questions
 
 - more levels
 
-- unlock spells (spell scroll screen related, so kyle)
+- minimize GC
+
+- Add Puzzles
+
+- Cool Physics Stuff
+
+- Spell Items (pick up an item that lets you cast a specific spell while holding the item)
