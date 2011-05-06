@@ -20,3 +20,4 @@ George Smells.
  * Implement a loading screen that is displayed while scenes are switching to at least cover up the "freezing" effect
  * Use middle layers for most objects, front layer for text
  * Put the actual title cloud in the title screen
+ * Move joystick
