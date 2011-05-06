@@ -26,3 +26,4 @@ George Smells.
  * Put fireball on johnny's spell bar automatically in the beginning
  * make level editor useable
  * johnny sometimes doesn't touch the ground when he is on slight inclines (very slight)
+ * evil number seven animation (currently he is "Complacent number seven")
