@@ -7,6 +7,7 @@ George Smells.
  * Fix profile loading
  * Reduce acceleration and friction for johnny
  * Make his resting jump higher but decrease his movement based jump bonus
+ * implement a maxJump velocity so that he can't shoot up inclines
  * Come up with good spell progression
  * Fix close error from database
  * Put music in
