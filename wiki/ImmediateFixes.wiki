@@ -4,19 +4,19 @@
 George Smells.
 
 = Details =
-* Fix profile loading
-* Reduce acceleration and friction for johnny
-* Make his resting jump higher but decrease his movement based jump bonus
-* Come up with good spell progression
-* Fix close error from database
-* Put music in
-* Questions and animation slides not matching levels
-* make use options actually do stuff
-* Back button exits game from title screen
-* Spells should show on your bar in the overworld
-* Fix spell select text: (make cost numbers ints, convert recharge to seconds, make text not overlap, and make text not go off the screen)
-* Make spell selector require dragging the icon to the bar to fix the problem of selecting spells on accident while scrolling
-* Make spell scroller have bounds so u cant scroll passed the spells
-* Implement a loading screen that is displayed while scenes are switching to at least cover up the "freezing" effect
-* Use middle layers for most objects, front layer for text
-* Put the actual title cloud in the title screen
+ * Fix profile loading
+ * Reduce acceleration and friction for johnny
+ * Make his resting jump higher but decrease his movement based jump bonus
+ * Come up with good spell progression
+ * Fix close error from database
+ * Put music in
+ * Questions and animation slides not matching levels
+ * make use options actually do stuff
+ * Back button exits game from title screen
+ * Spells should show on your bar in the overworld
+ * Fix spell select text: (make cost numbers ints, convert recharge to seconds, make text not overlap, and make text not go off the screen)
+ * Make spell selector require dragging the icon to the bar to fix the problem of selecting spells on accident while scrolling
+ * Make spell scroller have bounds so u cant scroll passed the spells
+ * Implement a loading screen that is displayed while scenes are switching to at least cover up the "freezing" effect
+ * Use middle layers for most objects, front layer for text
+ * Put the actual title cloud in the title screen
