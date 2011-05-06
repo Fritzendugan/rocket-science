@@ -21,3 +21,4 @@ George Smells.
  * Use middle layers for most objects, front layer for text
  * Put the actual title cloud in the title screen
  * Move joystick
+ * On kill text isn't showing for johnny
