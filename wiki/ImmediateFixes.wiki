@@ -24,3 +24,5 @@ George Smells.
  * Move joystick
  * On kill text isn't showing for johnny
  * Put fireball on johnny's spell bar automatically in the beginning
+ * make level editor useable
+ * johnny sometimes doesn't touch the ground when he is on slight inclines (very slight)
