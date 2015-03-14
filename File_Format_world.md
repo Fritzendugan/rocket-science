@@ -1,0 +1,31 @@
+# Introduction #
+treated as a binary file (no new lines or anything like that)
+
+Every world file contains information like:
+number of levels
+location on the overworld of each level
+location of the forward and backwards arrows
+file path of each level's icon (size of which is defined as constants in the world class)
+file path of each level
+number of questions on each level
+
+# Details #
+the background image may not be more than 1024 x 512
+
+only 720 x 480 of this image will be drawn, however.
+
+```
+<bg_img_full_path_in_assets_folder as String>
+<number_of_levels as int>
+<full_path_in_assets_folder_to_level_1 as String> (gets image name from this)
+<x_location_of_level_1 as float>
+<y_location_of_level_1 as float>
+<full_path_in_assets_folder_to_level_1's_icon as String> (ignored)
+.
+.
+.
+<full_path_in_assets_folder_to_level_n as String> (gets image name from this)
+<x_location_of_level_n as float>
+<y_location_of_level_n as float>
+<full_path_in_assets_folder_to_level_n's_icon as String> (ignored)
+```

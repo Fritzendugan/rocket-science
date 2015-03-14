@@ -1,0 +1,22 @@
+#This is for errors not going to be fixed right away
+
+# Introduction #
+
+This is for errors not going to be fixed right away
+
+
+# Details #
+
+```
+waypoints
+(doesn't change color/isn't activated)
+
+Music
+InvalidState When you try to play a sound(Stops previous sounds)
+
+GLTHREAD-Textures
+Index out of bounds
+
+
+
+```

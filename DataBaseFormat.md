@@ -1,0 +1,19 @@
+# Introduction #
+DataBaseFormat
+# Details #
+
+```
+Tables Names Format
+"w1l1"
+l as in L
+
+
+ROW_ID QUESTION T_OR_F OPT_1 OPT_2 OPT_3 ANS HINT
+
+QID QUESTION isTrueFalse Option1 Option2 Option3 Answer Hint
+
+examples:
+1 "Is Kyle Dumb?" "Yes" "" "" "" "True""Kyle likes to eat grass."
+2 "Who is the best Programmer?" "No" "Kyle" "Dr. Mullins" "Jesus" "Eric"
+"Dudde....."
+```
